@@ -14,10 +14,16 @@
 #     видны без входа в аккаунт, значит канал подойдёт).
 # ─────────────────────────────────────────────────────────────────────
 
+#
+# Все каналы проверены на живость и содержимое: для каждого считалось,
+# сколько из последних 20 постов реально подходят под профиль. Мёртвые,
+# пустые и те, где сплошь сомнительные объявления, в список не попали.
+#
 CHANNELS = [
-    # --- дизайн ---
+    # ─── ДИЗАЙН ───────────────────────────────────────────────
     "design_vacancy",             # Вакансии для дизайнеров, 34К
     "design_jobs_uxui",           # Вакансии для Дизайнеров, 25К
+    "designizer",                 # Вакансии для дизайнеров, 8К — 40% попаданий
     "workfordesigner",            # Дизайнер? Есть работа!, 24К
     "Designs_job",                # Уголок дизайнера, 36К
     "fordesigner",                # Job for Designers, 24К
@@ -25,29 +31,46 @@ CHANNELS = [
     "uiux_jobs_resumes",          # UI/UX Jobs, 4К
     "uxwork",                     # UX Work, 8К
     "runello_rus_webdesign",      # UX/UI & Product Design Job Offers, 12К
+    "job_webdesign",              # Работа — web-дизайн, 1.5К
+    "designwork_vacansii",        # Вакансии для дизайнера, 39К
+    "designer_work",              # Design WORK, 17К
+    "dsgnworkers",                # Дизайн работа, 17К
+    "jun_hi_vacancies",           # Вакансии дизайнерам, 42К
+    "designhunters",              # Design Hunters, 80К
+    "designodromo",               # Дизайнодром, 7К
+    "motionhunter",               # Motion designer hunter, 27К
 
-    # --- вёрстка и фронтенд ---
+    # ─── ВЁРСТКА И ФРОНТЕНД ───────────────────────────────────
     "job_webdev",                 # Работа — вёрстка и фронтенд, 7К
     "runello_rus_frontend",       # Front-end Job Offers, 15К
+    "runello_rus_html",           # HTML Job Offers, 9К
     "runello_rus_webdevelopment", # Fullstack / Web Development, 24К
     "forfrontend",                # Job for Frontend, 13К
     "front_end_dev",              # FrontEndDev, 26К
     "javascript_jobs_feed",       # JavaScript Jobs, 15К
+    "habr_career",                # Хабр Карьера, 33К
 
-    # --- проектная работа: разовые заказы «нужен лендинг» ---
-    # Каналы отбирал не по названию, а по содержимому: считал, сколько постов
-    # реально похожи на заказ, и проверял, откуда заказ пришёл.
-    #
-    # ВАЖНО, почему список короткий. Половина «каналов с заказами» —
-    # это зеркала бирж: @it_zakazy и @verstka_zakazy перепечатывают Kwork,
-    # @freelance_feed — FL.ru. Заказ там видно, но откликаться всё равно
-    # надо на бирже за деньги, так что смысла в них нет.
-    # Здесь оставлены только те, где заказчик оставляет прямой контакт.
-    "zakaz_design",               # ЗАКАЗЫ НА ДИЗАЙН, 23К — свои объявления
-    "frilans",                    # Фриланс | Удалённая работа, 10К — прямые контакты
-    "freelance_lenta",            # Лента Фрилансеров — прямые контакты
+    # ─── ПРОЕКТНАЯ РАБОТА: разовые заказы «нужен лендинг» ─────
+    # Отбирались по содержимому и по происхождению заказа. Каналы,
+    # которые просто перепечатывают биржи (@it_zakazy, @verstka_zakazy
+    # с Kwork, @freelance_feed с FL.ru), сюда не попали: заказ там виден,
+    # но откликаться всё равно надо на бирже за деньги. Оставлены только
+    # те, где заказчик оставляет прямой контакт.
+    "zakaz_design",               # ЗАКАЗЫ НА ДИЗАЙН, 23К
+    "designer_ru_work",           # designer.ru: клиенты каждый день, 23К
+    "digitaltender",              # DIGITAL Tender / freelance, 20К
+    "freelancetaverna",           # Фриланс Таверна, 26К
+    "freelancechoice",            # Freelance Choice, 16К
+    "Easy_wrk",                   # Easy Work | Фриланс заказы, 5К
+    "designbirzha",               # Дизайн-биржа, 53К
+    "frilans",                    # Фриланс | Удалённая работа, 10К
+    "freelance_lenta",            # Лента Фрилансеров
+    "freegolup",                  # Голубь на Фрилансе, 7К
+    "frilans_rabota_vakansii",    # Фрилансер. Ex Яндекс, 37К
+    "horseatinternship",          # КОНЬ НА СТАЖИРОВКЕ, 11К
+    "digitalbroccoli",            # Brocli: зарубежный фриланс, 24К
 
-    # --- фриланс и удалёнка ---
+    # ─── ФРИЛАНС И УДАЛЁНКА ───────────────────────────────────
     "sova_freelance",             # СОВА на ФРИЛАНСЕ, 33К
     "FreeWorkFeed",               # FreeWorkFeed, 23К
     "FrWork3",                    # Фриланс, удалённая работа, 27К
@@ -55,16 +78,63 @@ CHANNELS = [
     "frilans_na_legke",           # ФРИЛАНС НАЛЕГКЕ, 27К
     "talentedpeoples",            # Работа талантам + фриланс, 44К
     "zakazy_freelance",           # Заказы для фрилансеров
-    "cgfreelance",                # CG Freelance, 59К
+    "cgfreelance",                # CG Freelance, 60К
+    "rueventjob",                 # Удалёнка — творческая работа, 85К
+    "onlinevakansii",             # Удалённая работа, 127К
+    "remote_w0rk",                # Удалёнка, 15К
+    "rabotka_zdes",               # Работка | Удалёнка, 11К
+    "workk_on",                   # WORK ON, 81К
+    "normrabota",                 # Норм работа, 127К
+    "chooseajob",                 # Выбери Работу, 15К
+    "workasap",                   # Работа в диджитал и медиа, 73К
+    "dddwork",                    # Работа в медиа, 100К
+    "jobpower",                   # Jobpower — креативные вакансии, 43К
+    "newdirections",              # New directions, 47К
+    "huggabletalents",            # A-Teams | Карьера, 122К
+    "careerspace",                # careerspace, 159К
+    "myresume_ru",                # Вакансии и стажировки, 20К
+    "Getitrussia",                # Get IT, 21К
 
-    # --- удалёнка общая ---
-    "rueventjob",                 # Удалёнка — вся творческая работа, 85К
+    # ─── ДЛЯ НАЧИНАЮЩИХ ───────────────────────────────────────
+    "jobforjunior",               # Job for Junior, 82К
+    "juniors_rabota_jobs",        # Джуниор вакансии, 66К
+    "stage_first",                # Первая ступень: стажировки, 44К
+
+    # ─── ОБЫЧНАЯ УДАЛЁНКА (не по профилю, для заработка) ──────
+    # Работают, только пока SEND_OTHER_REMOTE = True
     "theypaywell",                # Вакансии с ЗП выше 100 тысяч, 26К
-    "MoscowJobForYou",            # Москва: работа, вакансии, удалёнка, 36К
+    "Well_paid_Job",              # Вакансии с зп выше 50 тысяч, 45К
+    "MoscowJobForYou",            # Москва: работа, удалёнка, 36К
+    "vacansi_msk",                # Вакансии Москва и МО, 236К
+    "perezvonyu",                 # Мы вам перезвоним, 39К
+    "vacanciesrus",               # Digital вакансии, 18К
+    "MPmanagers",                 # Менеджеры маркетплейсов, 22К
+    "dnative_job",                # Вакансии SMM и Digital, 99К
+    "vacancysmm",                 # SMM работа, вакансии, 39К
+    "smm_leads",                  # SMM LEADS, 8К
+    "smmlancer",                  # SMMLANCER, 23К
+    "digital_jobster",            # Джобстер Digital, 33К
+    "marketing_jobs",             # marketing jobs, 59К
+    "forallmarketing",            # Job for Marketing, 21К
+    "runello_rus_digitalmarketing",  # Growth / Marketing Job Offers, 12К
+    "reklamodromo",               # Рекламодром, 8К
+    "seohr",                      # SEO HR, digital-вакансии, 25К
+    "self_ma",                    # Копирайтер, редактор — удалёнка, 33К
+    "kopirayter_kopirayting",     # Копирайтер Редактор, 20К
+    "copywriter_vacancies",       # Вакансии для копирайтеров, 29К
+    "Work_copywriters",           # Работа для копирайтеров, 16К
+    "copy_go",                    # Копирайтинг 2.0, 11К
+    "Copy_Digital",               # Копирайтер, редактор, 7К
+    "textodromo",                 # Текстодром, 31К
+    "Work4writers",               # Work for writers, 34К
+    "Dorogoj_redaktor_Teksty",    # Дорогой редактор, 54К
+    "mediajobs_ru",               # mediajobs, 29К
+    "hireproproduct",             # Hire ProProduct, 24К
+    "productjobgo",               # Вакансии для продакт-менеджеров, 22К
+    "hh_vacancy_product_project", # Работа для продактов и проджектов
 
-    # Закрытые каналы/чаты веб-превью не отдают — парсить их нельзя:
-    # "Uyut_frilans",
-    # "ydalenkarussian",
+    # Закрытые каналы и чаты веб-превью не отдают — парсить их нельзя:
+    # "Uyut_frilans", "ydalenkarussian"
 ]
 
 # Сколько последних постов смотреть в каждом канале за один запуск.
@@ -304,5 +374,6 @@ TIMEZONE_OFFSET = 3
 # Пауза между сообщениями, чтобы Telegram не ругался на флуд (в секундах)
 SEND_DELAY = 1.2
 
-# Максимум сообщений за один запуск — страховка от простыни на 200 штук
-MAX_PER_RUN = 25
+# Максимум сообщений за один запуск — страховка от простыни на 200 штук.
+# Остальное не теряется, а придёт следующими запусками.
+MAX_PER_RUN = 35

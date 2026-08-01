@@ -1,13 +1,19 @@
 name: Радар вакансий
 
 on:
+  # Каждые 30 минут. GitHub иногда запускает с задержкой в пик нагрузки —
+  # это нормально, вакансии всё равно приходят несколько раз в час.
   schedule:
     - cron: "*/30 * * * *"
+  # Кнопка ручного запуска на вкладке Actions
   workflow_dispatch:
 
+# Нужно, чтобы workflow мог сохранять seen.json обратно в репозиторий
 permissions:
   contents: write
 
+# Если предыдущий запуск ещё идёт — не запускать второй параллельно,
+# иначе два процесса пришлют одни и те же вакансии дважды
 concurrency:
   group: job-radar
   cancel-in-progress: false
@@ -47,5 +53,7 @@ jobs:
           git config user.email "actions@github.com"
           git add seen.json
           git commit -m "память радара: $(date -u '+%Y-%m-%d %H:%M UTC')"
+          # Пока мы работали, расписание могло запустить соседний прогон —
+          # подтягиваем его изменения, чтобы push не отвалился
           git pull --rebase --autostash origin ${{ github.ref_name }}
           git push

@@ -50,44 +50,58 @@ def run(dry=False):
 
     # --- разбор ---
     candidates = []
-    for item in items:
-        analysis = analyzer.analyze(item["text"], is_order=item.get("is_order", False))
+    for post in items:
+        # Пост может оказаться дайджестом из десятка вакансий. Тогда берём
+        # из него все подходящие и шлём по отдельности, а не простынёй.
+        found = analyzer.extract_all(post["text"],
+                                     is_order=post.get("is_order", False))
 
-        if not analysis["relevant"]:
-            stats["filtered"] += 1
-            continue
+        for n, (analysis, text) in enumerate(found):
+            item = post
+            if text != post["text"]:
+                item = dict(post, text=text, id=f"{post['id']}#{n}")
 
-        # Порог зависит от типа: разовый заказ, обычная удалёнка или
-        # работа по профилю — у каждого свой, см. salary_ok()
-        if not analyzer.salary_ok(analysis["salary"],
-                                  is_project=analysis["is_project"] or
-                                  item.get("is_order", False),
-                                  category=analysis["category"]):
-            stats["money"] += 1
-            continue
-
-        verdict = analysis["verdict"]
-        if verdict == "scam":
-            stats["scam"] += 1
-            if not config.SEND_SCAM:
+            if not analysis["relevant"]:
+                stats["filtered"] += 1
                 continue
-        elif verdict == "suspicious":
-            stats["suspicious"] += 1
-            if not config.SEND_SUSPICIOUS:
+
+            # Порог зависит от типа: разовый заказ, обычная удалёнка или
+            # работа по профилю — у каждого свой, см. salary_ok()
+            if not analyzer.salary_ok(analysis["salary"],
+                                      is_project=analysis["is_project"] or
+                                      item.get("is_order", False),
+                                      category=analysis["category"]):
+                stats["money"] += 1
                 continue
-        else:
-            stats["ok"] += 1
 
-        if not storage.is_new(state, item):
-            stats["dup"] += 1
-            continue
+            verdict = analysis["verdict"]
+            if verdict == "scam":
+                stats["scam"] += 1
+                if not config.SEND_SCAM:
+                    continue
+            elif verdict == "suspicious":
+                stats["suspicious"] += 1
+                if not config.SEND_SUSPICIOUS:
+                    continue
+            else:
+                stats["ok"] += 1
 
-        candidates.append((item, analysis))
-        storage.remember(state, item)     # помечаем сразу, чтобы не задвоить
+            if not storage.is_new(state, item):
+                stats["dup"] += 1
+                continue
 
-    # Сначала нормальные, потом сомнительные; внутри — те, где больше доверия
+            candidates.append((item, analysis))
+            storage.remember(state, item)   # помечаем сразу, чтобы не задвоить
+
+    # Порядок отправки. Профильное — всегда первым: за один запуск уходит
+    # не больше MAX_PER_RUN сообщений, и без этого лимит съедали бы
+    # многочисленные вакансии SMM-щиков и копирайтеров, а веб-дизайн
+    # оставался бы в хвосте очереди до следующего запуска.
+    priority = {"design": 0, "frontend": 0, "project": 0, "remote": 1}
     order = {"ok": 0, "suspicious": 1, "scam": 2}
-    candidates.sort(key=lambda p: (order[p[1]["verdict"]], -p[1]["trust"]))
+    candidates.sort(key=lambda p: (priority.get(p[1]["category"], 1),
+                                   order[p[1]["verdict"]],
+                                   -p[1]["trust"]))
 
     print(f"\n{'='*60}")
     print(f"Собрано постов:        {stats['total']}")
