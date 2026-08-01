@@ -337,6 +337,7 @@ def normalize(text):
 # из конфига не совпадёт с «верстка» в нормализованном тексте.
 _STOP = [normalize(w) for w in config.STOP_WORDS]
 _VACANCY = [normalize(w) for w in config.VACANCY_MARKERS]
+_CONTENT = [normalize(w) for w in config.CONTENT_MARKERS]
 _KEYWORDS = {
     cat: {"strong": [normalize(w) for w in groups["strong"]],
           "weak": [normalize(w) for w in groups["weak"]]}
@@ -388,6 +389,15 @@ def analyze(text, is_order=False, is_part=False):
     # --- 3. Это вообще вакансия, а не статья и не мем? ---
     if not is_order and not any(w in t for w in _VACANCY):
         out["reason"] = "не похоже на вакансию — просто пост"
+        return out
+
+    # --- 3.5. Контент и реклама под видом вакансии ---
+    # «Разобрал 4 ошибки в видео», «забирайте гайд в моём боте» — такие посты
+    # проходят проверку выше, потому что содержат и «вакансию», и «портфолио»,
+    # и «требования». Но зовут они смотреть и подписываться, а не работать.
+    content_hits = [w for w in _CONTENT if w in t]
+    if content_hits and not is_order:
+        out["reason"] = f"реклама или статья, а не вакансия: «{content_hits[0]}»"
         return out
 
     # --- 4. Профиль: наше или нет ---
