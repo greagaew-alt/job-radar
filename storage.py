@@ -22,7 +22,7 @@ SEEN_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "seen.json"
 KEEP_DAYS = 30
 
 
-def _fingerprint(text):
+def fingerprint(text):
     """
     Отпечаток вакансии: убираем всё оформление и оставляем «мясо».
     Один и тот же текст с разными эмодзи и хештегами даст один отпечаток.
@@ -64,7 +64,7 @@ def is_new(state, item):
     """Проверяет, видели ли мы это раньше."""
     if item["id"] in state["ids"]:
         return False
-    if _fingerprint(item["text"]) in state["prints"]:
+    if fingerprint(item["text"]) in state["prints"]:
         return False
     return True
 
@@ -73,4 +73,4 @@ def remember(state, item):
     """Запоминает отправленную вакансию."""
     today = datetime.utcnow().strftime("%Y-%m-%d")
     state["ids"][item["id"]] = today
-    state["prints"][_fingerprint(item["text"])] = today
+    state["prints"][fingerprint(item["text"])] = today

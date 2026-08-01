@@ -50,6 +50,12 @@ def run(dry=False):
 
     # --- разбор ---
     candidates = []
+    # Отпечатки уже отобранного в этом прогоне. Раньше от повторов внутри
+    # одного запуска спасала пометка в памяти, но она делалась до отправки
+    # и хоронила всё сверх лимита. Теперь память пишется после отправки,
+    # а за дублями внутри прогона следит этот набор: одну и ту же вакансию
+    # публикуют сразу в нескольких каналах.
+    seen_now = set()
     for post in items:
         # Пост может оказаться дайджестом из десятка вакансий. Тогда берём
         # из него все подходящие и шлём по отдельности, а не простынёй.
@@ -90,8 +96,16 @@ def run(dry=False):
                 stats["dup"] += 1
                 continue
 
+            mark = storage.fingerprint(item["text"])
+            if mark in seen_now:
+                stats["dup"] += 1
+                continue
+            seen_now.add(mark)
+
+            # Запоминаем не здесь, а только после успешной отправки.
+            # Иначе всё найденное сверх MAX_PER_RUN помечалось отправленным,
+            # хотя в бот не уходило, — и пропадало навсегда.
             candidates.append((item, analysis))
-            storage.remember(state, item)   # помечаем сразу, чтобы не задвоить
 
     # Порядок отправки. Профильное — всегда первым: за один запуск уходит
     # не больше MAX_PER_RUN сообщений, и без этого лимит съедали бы
@@ -122,7 +136,9 @@ def run(dry=False):
     to_send = candidates[:config.MAX_PER_RUN]
     if len(candidates) > config.MAX_PER_RUN:
         print(f"[!] Нашлось {len(candidates)}, отправлю первые "
-              f"{config.MAX_PER_RUN} (лимит из config.py)\n")
+              f"{config.MAX_PER_RUN} (лимит из config.py).")
+        print(f"    Остальные {len(candidates) - config.MAX_PER_RUN} "
+              f"не забыты — придут следующими запусками.\n")
 
     for i, (item, analysis) in enumerate(to_send, 1):
         icon = notifier.VERDICT_STYLE[analysis["verdict"]][0]
@@ -132,8 +148,11 @@ def run(dry=False):
         if dry:
             continue
 
+        # Запоминаем только то, что реально дошло. Если телеграм ответил
+        # ошибкой — вакансия останется новой и уйдёт следующим запуском.
         if notifier.send(notifier.build_message(item, analysis)):
             stats["sent"] += 1
+            storage.remember(state, item)
         time.sleep(config.SEND_DELAY)
 
     if dry:
