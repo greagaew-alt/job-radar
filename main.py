@@ -37,7 +37,7 @@ def load_env():
 
 def run(dry=False):
     stats = {"total": 0, "filtered": 0, "scam": 0, "suspicious": 0,
-             "ok": 0, "sent": 0, "dup": 0, "money": 0}
+             "ok": 0, "sent": 0, "dup": 0, "money": 0, "old": 0}
 
     items = sources.fetch_everything()
     stats["total"] = len(items)
@@ -57,6 +57,13 @@ def run(dry=False):
     # публикуют сразу в нескольких каналах.
     seen_now = set()
     for post in items:
+        # Протухшее не разбираем вовсе: за полторы недели место занято,
+        # а отклик на такую вакансию — потраченное время.
+        age = notifier.age_in_days(post.get("date"))
+        if age is not None and age > config.MAX_AGE_DAYS:
+            stats["old"] += 1
+            continue
+
         # Пост может оказаться дайджестом из десятка вакансий. Тогда берём
         # из него все подходящие и шлём по отдельности, а не простынёй.
         found = analyzer.extract_all(post["text"],
@@ -119,6 +126,7 @@ def run(dry=False):
 
     print(f"\n{'='*60}")
     print(f"Собрано постов:        {stats['total']}")
+    print(f"Старше {config.MAX_AGE_DAYS} дней:       {stats['old']}")
     print(f"Не по профилю:         {stats['filtered']}")
     print(f"Не прошли по деньгам:  {stats['money']}")
     print(f"Уже присылали раньше:  {stats['dup']}")

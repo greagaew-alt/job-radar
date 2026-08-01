@@ -127,8 +127,18 @@ RESUME_MARKERS = [
 # «менеджер по продажам» по умолчанию сидит в офисе.
 REMOTE_MARKERS = [
     r"удал[её]нн?о", r"удал[её]нн?[ая]", r"на\s*удал[её]нке", r"#удал[её]нка",
-    r"\bremote\b", r"из\s*дома", r"на\s*дому", r"гибрид",
+    r"\bremote\b", r"из\s*дома", r"на\s*дому",
     r"формат\s*работы\s*[:\-–]?\s*удал", r"можно\s*из\s*любой\s*точки",
+    r"из\s*любой\s*точки", r"\bдистанционн", r"work\s*from\s*home",
+]
+
+# Гибрид и офис. Раньше «гибрид» стоял в списке удалёнки — и вакансии
+# «гибрид, Москва» считались подходящими, хотя ездить туда некуда.
+OFFICE_MARKERS = [
+    r"гибрид\w*", r"#гибрид", r"частично\s*в?\s*офис", r"\bв\s*офисе\b",
+    r"формат\s*[:\-–]?\s*офис", r"#офис", r"офисн\w*\s*формат",
+    r"\d\s*дн\w*\s*в\s*(офисе|неделю\s*в\s*офисе)", r"работа\s*в\s*офисе",
+    r"присутстви\w*\s*в\s*офисе", r"on-?site",
 ]
 
 PROJECT_PATTERNS = [
@@ -343,6 +353,7 @@ def normalize(text):
 _STOP = [normalize(w) for w in config.STOP_WORDS]
 _STOP_ROLES = [normalize(w) for w in config.STOP_ROLES]
 _EXCHANGE = [normalize(w) for w in config.EXCHANGE_MARKERS]
+_MY_CITIES = [normalize(w) for w in config.MY_CITIES]
 _VACANCY = [normalize(w) for w in config.VACANCY_MARKERS]
 _CONTENT = [normalize(w) for w in config.CONTENT_MARKERS]
 _KEYWORDS = {
@@ -518,6 +529,21 @@ def analyze(text, is_order=False, is_part=False):
         out["reason"] = (f"требуют опыт от {exp:g} лет "
                          f"(потолок {config.MAX_EXPERIENCE_YEARS:g})")
         return out
+
+    # --- 5.5. Формат работы ---
+    # Гибрид и офис не нужны, кроме своего города: ездить в Москву
+    # два раза в неделю невозможно, а в Новосибирск — вполне.
+    # Слово «удалённо» перевешивает: «удалённо или гибрид» — это удалёнка.
+    if config.SKIP_OFFICE and not _find(REMOTE_MARKERS, t):
+        office = _find(OFFICE_MARKERS, t)
+        if office:
+            if not any(city in t for city in _MY_CITIES):
+                m = re.search(office[0], t, re.I)
+                out["relevant"] = False
+                out["reason"] = (f"офис или гибрид не в твоём городе: "
+                                 f"«{m.group(0) if m else 'офис'}»")
+                return out
+            out["is_office_local"] = True
 
     # --- 6. Зарплата ---
     out["salary"] = extract_salary(text)

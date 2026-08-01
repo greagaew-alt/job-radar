@@ -41,6 +41,23 @@ MONTHS = ["января", "февраля", "марта", "апреля", "ма�
           "июля", "августа", "сентября", "октября", "ноября", "декабря"]
 
 
+def age_in_days(iso_date):
+    """
+    Сколько дней назад опубликована вакансия. None, если даты нет.
+    Нужно, чтобы не присылать протухшее: за полторы недели место
+    обычно уже занято.
+    """
+    if not iso_date:
+        return None
+    try:
+        dt = datetime.fromisoformat(iso_date.replace("Z", "+00:00"))
+    except ValueError:
+        return None
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=timezone.utc)
+    return (datetime.now(timezone.utc) - dt).days
+
+
 def format_when(iso_date):
     """
     Превращает «2026-07-27T15:01:12+00:00» в «сегодня в 18:01».
