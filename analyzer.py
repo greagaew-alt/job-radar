@@ -708,6 +708,16 @@ def extract_all(text, is_order=False):
         if found:
             return found
 
+        # Ни один пункт не подошёл — значит слать нечего. Раньше в этом
+        # случае разбирался весь пост целиком, и список «Вакансии на
+        # сегодня: 1. Графический дизайнер… 5. Дизайнер продукта…»
+        # уходил простынёй: формально он подходит, ведь слово «дизайнер»
+        # в нём есть. Но ни одной нужной вакансии там нет.
+        return [({"relevant": False, "reason": "в пакете нет подходящих вакансий",
+                  "verdict": "ok", "category": None, "is_project": False,
+                  "salary": (None, None, None), "why": [], "trust": 0},
+                 text)]
+
     analysis = analyze(text, is_order)
     return [(analysis, text)]
 
