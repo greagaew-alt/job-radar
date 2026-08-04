@@ -27,6 +27,7 @@ VERDICT_STYLE = {
 CATEGORY_NAME = {
     "design":   "Веб-дизайн",
     "frontend": "Вёрстка / фронтенд",
+    "vibe":     "Вайб-кодинг",
     "project":  "Проектная работа",
     "remote":   "Удалёнка (не по профилю)",
 }
