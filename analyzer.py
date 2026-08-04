@@ -543,25 +543,43 @@ def analyze(text, is_order=False, is_part=False):
 
     exp = required_experience(text)
     out["experience"] = exp
-    if exp is not None and exp > config.MAX_EXPERIENCE_YEARS:
+    # У обычной удалёнки планка своя и строже: туда идут ради старта
+    # без опыта, а не ради профессии, — см. пояснение в config.py
+    exp_limit = (config.MAX_EXPERIENCE_YEARS_OTHER if best_cat == "remote"
+                 else config.MAX_EXPERIENCE_YEARS)
+    if exp is not None and exp > exp_limit:
         out["relevant"] = False
-        out["reason"] = (f"требуют опыт от {exp:g} лет "
-                         f"(потолок {config.MAX_EXPERIENCE_YEARS:g})")
+        out["reason"] = f"требуют опыт от {exp:g} лет (потолок {exp_limit:g})"
         return out
 
     # --- 5.5. Формат работы ---
     # Гибрид и офис не нужны, кроме своего города: ездить в Москву
     # два раза в неделю невозможно, а в Новосибирск — вполне.
-    # Слово «удалённо» перевешивает: «удалённо или гибрид» — это удалёнка.
-    if config.SKIP_OFFICE and not _find(REMOTE_MARKERS, t):
-        office = _find(OFFICE_MARKERS, t)
-        if office:
-            if not any(city in t for city in _MY_CITIES):
+    if config.SKIP_OFFICE:
+        # Сначала заголовок — там стоит формат именно этой вакансии
+        # («Дизайнер в пул Helpy / Москва, гибрид»). По всему тексту
+        # судить нельзя: в одном посте бывает несколько вакансий, и
+        # слово «удалённо» от контент-менеджера двумя тысячами символов
+        # ниже protaskивало московский гибрид как удалённую работу.
+        office_head = _find(OFFICE_MARKERS, head)
+        if office_head and not any(city in head for city in _MY_CITIES):
+            m = re.search(office_head[0], head, re.I)
+            out["relevant"] = False
+            out["reason"] = (f"офис или гибрид не в твоём городе: "
+                             f"«{m.group(0) if m else 'офис'}»")
+            return out
+
+        # Если в заголовке формата нет, смотрим весь текст, и там уже
+        # «удалённо» перевешивает: «удалённо или гибрид» — это удалёнка.
+        if not office_head and not _find(REMOTE_MARKERS, t):
+            office = _find(OFFICE_MARKERS, t)
+            if office and not any(city in t for city in _MY_CITIES):
                 m = re.search(office[0], t, re.I)
                 out["relevant"] = False
                 out["reason"] = (f"офис или гибрид не в твоём городе: "
                                  f"«{m.group(0) if m else 'офис'}»")
                 return out
+        if office_head:
             out["is_office_local"] = True
 
     # --- 6. Зарплата ---
