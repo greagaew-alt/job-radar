@@ -83,7 +83,9 @@ def run(dry=False):
             if not analyzer.salary_ok(analysis["salary"],
                                       is_project=analysis["is_project"] or
                                       item.get("is_order", False),
-                                      category=analysis["category"]):
+                                      category=analysis["category"],
+                                      local_office=analysis.get(
+                                          "is_office_local", False)):
                 stats["money"] += 1
                 continue
 
