@@ -16,6 +16,7 @@ import time
 
 import analyzer
 import config
+import leads
 import notifier
 import sources
 import storage
@@ -200,6 +201,15 @@ def main():
         return
 
     run(dry="--dry" in args)
+
+    # Ловля живых заказчиков в чатах — отдельно от вакансий, работает
+    # только если бота добавили в групповые чаты (см. README). Если бота
+    # никуда не добавляли, getUpdates просто вернёт пусто, ошибки не будет.
+    # Оборачиваем в try, чтобы сбой здесь не портил основной прогон вакансий.
+    try:
+        leads.run(dry="--dry" in args)
+    except Exception as e:
+        print(f"\n[!] Поиск в чатах не удался: {type(e).__name__}: {e}")
 
 
 if __name__ == "__main__":

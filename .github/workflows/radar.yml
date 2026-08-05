@@ -45,13 +45,14 @@ jobs:
 
       - name: Запомнить отправленное
         run: |
-          if [[ -z "$(git status --porcelain seen.json)" ]]; then
+          if [[ -z "$(git status --porcelain seen.json leads_offset.txt)" ]]; then
             echo "Новых вакансий не было — сохранять нечего."
             exit 0
           fi
           git config user.name "job-radar"
           git config user.email "actions@github.com"
           git add seen.json
+          [ -f leads_offset.txt ] && git add leads_offset.txt
           git commit -m "память радара: $(date -u '+%Y-%m-%d %H:%M UTC')"
           # Пока мы работали, расписание могло запустить соседний прогон —
           # подтягиваем его изменения, чтобы push не отвалился
