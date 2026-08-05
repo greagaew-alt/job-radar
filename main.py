@@ -120,7 +120,10 @@ def run(dry=False):
     # не больше MAX_PER_RUN сообщений, и без этого лимит съедали бы
     # многочисленные вакансии SMM-щиков и копирайтеров, а веб-дизайн
     # оставался бы в хвосте очереди до следующего запуска.
-    priority = {"design": 0, "frontend": 0, "vibe": 0, "project": 0, "remote": 1}
+    # Лид первее всего: заказчик с бюджетом ценнее вакансии в штат —
+    # работа разовая, торг прямой, конкурентов меньше
+    priority = {"lead": 0, "design": 1, "frontend": 1, "vibe": 1,
+                "project": 1, "remote": 2}
     order = {"ok": 0, "suspicious": 1, "scam": 2}
     candidates.sort(key=lambda p: (priority.get(p[1]["category"], 1),
                                    order[p[1]["verdict"]],

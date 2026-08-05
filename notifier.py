@@ -25,6 +25,7 @@ VERDICT_STYLE = {
 }
 
 CATEGORY_NAME = {
+    "lead":     "💼 КЛИЕНТ ищет подрядчика",
     "design":   "Веб-дизайн",
     "frontend": "Вёрстка / фронтенд",
     "vibe":     "Вайб-кодинг",
@@ -157,6 +158,14 @@ def build_message(item, analysis):
         body = body[:room].rsplit("\n", 1)[0].rstrip() + "\n…"
     lines.append(_esc(body))
     lines.append("")
+
+    # --- почему это заказчик, а не вакансия ---
+    # Видно сразу, за что зацепились: «бюджет», «под ключ», «наша компания».
+    # Так понятно, стоит ли писать первым, или это всё-таки наём в штат.
+    if analysis["category"] == "lead" and analysis.get("client_signals"):
+        signals = ", ".join(analysis["client_signals"][:3])
+        lines.append(f"🎯 <i>Похоже на прямого заказчика: {_esc(signals)}</i>")
+        lines.append("")
 
     # --- разбор: почему такой вердикт ---
     if analysis["verdict"] != "ok" and analysis["why"]:
